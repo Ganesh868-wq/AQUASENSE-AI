@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AquaSense AI — Smart Irrigation & Water Optimization System</title>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js for High-Performance Visual Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- ==================== SIDEBAR ==================== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-icon">🌱</div>
+        <div>
+          <div class="brand-title">AquaSense AI</div>
+          <div class="brand-subtitle">Smart Irrigation</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Operations</div>
+        <a href="#dashboard" class="nav-item active" data-view="dashboard">
+          <span class="icon">📊</span>
+          <span data-i18n="dashboard">Dashboard</span>
+        </a>
+        <a href="#recommendations" class="nav-item" data-view="recommendations">
+          <span class="icon">💡</span>
+          <span data-i18n="recommendations">Recommendations</span>
+        </a>
+        <a href="#soil" class="nav-item" data-view="soil">
+          <span class="icon">🪴</span>
+          <span data-i18n="soil">Soil Monitoring</span>
+        </a>
+        <a href="#weather" class="nav-item" data-view="weather">
+          <span class="icon">⛅</span>
+          <span data-i18n="weather">Weather Forecast</span>
+        </a>
+        <a href="#scheduler" class="nav-item" data-view="scheduler">
+          <span class="icon">📅</span>
+          <span data-i18n="scheduler">Scheduler</span>
+        </a>
+        <a href="#analytics" class="nav-item" data-view="analytics">
+          <span class="icon">📈</span>
+          <span data-i18n="analytics">Water Analytics</span>
+        </a>
+        <a href="#alerts" class="nav-item" data-view="alerts">
+          <span class="icon">⚠️</span>
+          <span data-i18n="alerts">Failure Alerts</span>
+          <span class="badge-counter" id="navAlertsBadge">2</span>
+        </a>
+
+        <div class="nav-section-title">Management & AI</div>
+        <a href="#voiceAssistant" class="nav-item" data-view="voiceAssistant">
+          <span class="icon">🎙️</span>
+          <span data-i18n="voiceAssistant">Telugu Voice Assistant</span>
+        </a>
+        <a href="#farms" class="nav-item" data-view="farms">
+          <span class="icon">🚜</span>
+          <span data-i18n="farms">Farm Management</span>
+        </a>
+        <a href="#plots" class="nav-item" data-view="plots">
+          <span class="icon">🌾</span>
+          <span data-i18n="plots">Plot & Crop Details</span>
+        </a>
+        <a href="#iotSimulator" class="nav-item" data-view="iotSimulator">
+          <span class="icon">📡</span>
+          <span data-i18n="iotSimulator">IoT & Pump Hub</span>
+        </a>
+        <a href="#settings" class="nav-item" data-view="settings">
+          <span class="icon">⚙️</span>
+          <span data-i18n="settings">Settings</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="farmer-avatar">GR</div>
+        <div class="farmer-info">
+          <div class="farmer-name">Ganesh Rao</div>
+          <div class="farmer-role">Progressive Farmer</div>
+        </div>
+        <button class="btn-icon-logout" title="Log Out" onclick="AquaSenseAPI.logout(); showToast('Logged out session', 'info');">⏻</button>
+      </div>
+    </aside>
+
+    <!-- ==================== MAIN WRAPPER ==================== -->
+    <div class="main-wrapper">
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">☰</button>
+          <div class="page-heading-box">
+            <h1 id="pageTitle" data-i18n="dashboard">Dashboard</h1>
+            <p id="pageSubtitle" data-i18n="tagline">Smart Irrigation & Water Optimization System</p>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Farm Dropdown -->
+          <div class="farm-selector-dropdown">
+            <span>📍</span>
+            <select id="globalFarmSelect" class="farm-select-input" onchange="selectedFarmId=this.value; renderDashboard();">
+              <option value="farm-1">Sri Lakshmi Agro-Tech Farm</option>
+            </select>
+          </div>
+
+          <!-- Live IoT / Demo Data Indicator -->
+          <div class="live-badge" title="Data connection mode">
+            <span class="pulse-dot"></span>
+            <span>SYSTEM ACTIVE</span>
+          </div>
+
+          <!-- Bilingual Language Switch -->
+          <div class="lang-switch">
+            <button class="lang-btn active" data-lang="en" onclick="setLanguage('en')">English</button>
+            <button class="lang-btn" data-lang="te" onclick="setLanguage('te')">తెలుగు</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT AREA -->
+      <main class="content-area">
+        <!-- ==================== 1. DASHBOARD VIEW ==================== -->
+        <section class="view-container active" id="view-dashboard">
+          <!-- Quick Action Bar -->
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div style="font-size: 14px; color: var(--text-muted); font-weight: 500;">
+              Precision Agro-Hydrology Overview • Warangal Agro-Climatic Zone
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn btn-secondary btn-sm" onclick="openSoilModal(selectedPlotId)">+ Record Moisture</button>
+              <button class="btn btn-secondary btn-sm" onclick="openScheduleModalForPlot(selectedPlotId)">+ New Schedule</button>
+              <button class="btn btn-primary btn-sm" onclick="exportCsvReport()">📥 Export CSV</button>
+            </div>
+          </div>
+
+          <!-- Agronomic Decision Banner -->
+          <div id="decisionBannerContainer"></div>
+
+          <!-- 10 Responsive Dashboard Stat Cards -->
+          <div class="grid-cards">
+            <div class="stat-card card-green">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="activeFarms">Registered Plots</span>
+                <div class="stat-icon icon-green">🌾</div>
+              </div>
+              <div class="stat-value" id="statTotalPlots">4 Plots (7.5 Ac)</div>
+              <div class="stat-footer">
+                <span class="stat-trend trend-up">100% Active</span> • Drip, Sprinkler, Flood
+              </div>
+            </div>
+
+            <div class="stat-card card-blue">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="soilMoisture">Soil Moisture</span>
+                <div class="stat-icon icon-blue">💧</div>
+              </div>
+              <div class="stat-value" id="statSoilMoisture">34.5%</div>
+              <div class="stat-footer">
+                <span class="stat-trend trend-down">Deficit (Min: 38%)</span> • Plot 1
+              </div>
+            </div>
+
+            <div class="stat-card card-amber">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="weatherInfo">Weather / Humidity</span>
+                <div class="stat-icon icon-amber">⛅</div>
+              </div>
+              <div class="stat-value" id="statWeather">31.8°C / 52%</div>
+              <div class="stat-footer">
+                <span>Wind: 11.2 km/h</span> • Evaporative Demand
+              </div>
+            </div>
+
+            <div class="stat-card card-blue">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="rainProb">Rain Probability (48h)</span>
+                <div class="stat-icon icon-blue">🌧️</div>
+              </div>
+              <div class="stat-value" id="statRainProb">20% (0.0 mm)</div>
+              <div class="stat-footer">
+                <span>No rain delay advised</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-green">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="recDuration">Suggested Duration</span>
+                <div class="stat-icon icon-green">⏱️</div>
+              </div>
+              <div class="stat-value" id="statDuration">60 Mins</div>
+              <div class="stat-footer">
+                <span>Pump flow: 140 LPM</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-blue">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="waterNeeded">Est. Water Needed</span>
+                <div class="stat-icon icon-blue">🚰</div>
+              </div>
+              <div class="stat-value" id="statWaterNeeded">8,400 L</div>
+              <div class="stat-footer">
+                <span>8.4 m³ • Drip (90% Eff.)</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-amber">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="waterConsumed">Water Used Today</span>
+                <div class="stat-icon icon-amber">📊</div>
+              </div>
+              <div class="stat-value" id="statWaterConsumed">3,500 L</div>
+              <div class="stat-footer">
+                <span>Plot 2 (Completed)</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-green">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="waterSaved">Cumulative Water Saved</span>
+                <div class="stat-icon icon-green">🌱</div>
+              </div>
+              <div class="stat-value" id="statWaterSaved">92,400 L</div>
+              <div class="stat-footer">
+                <span class="stat-trend trend-up">38.5% Savings</span> vs Flood
+              </div>
+            </div>
+
+            <div class="stat-card card-blue">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="nextIrrigation">Next Scheduled</span>
+                <div class="stat-icon icon-blue">📅</div>
+              </div>
+              <div class="stat-value" id="statNextSchedule" style="font-size: 18px;">Tomorrow 06:30</div>
+              <div class="stat-footer">
+                <span>Plot 1 - Cotton</span>
+              </div>
+            </div>
+
+            <div class="stat-card card-red">
+              <div class="stat-header">
+                <span class="stat-label" data-i18n="activeWarnings">Active Warnings</span>
+                <div class="stat-icon icon-red">⚠️</div>
+              </div>
+              <div class="stat-value" id="statActiveAlerts">2 Issues</div>
+              <div class="stat-footer">
+                <span style="color: #dc2626; font-weight:600;">1 Critical Moisture, 1 Leakage</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Analytics Charts (Grid 2x2) -->
+          <div class="charts-grid-2">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title" data-i18n="moistureOverTime">Soil Moisture Telemetry (% Over Time)</div>
+                  <div class="chart-subtitle">Continuous root-zone probe tracking vs critical crop stress boundary</div>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chartMoisture"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title" data-i18n="waterConsumptionChart">Daily Water Consumption vs Traditional Baseline</div>
+                  <div class="chart-subtitle">Precision drip delivery volume compared against conventional flood irrigation</div>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chartWaterConsumption"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title" data-i18n="rainfallVsIrrigation">Rainfall Accumulation vs Irrigation Applied (mm)</div>
+                  <div class="chart-subtitle">Rainfall-aware scheduling: preventing double-watering and nitrate leaching</div>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chartRainVsIrrigation"></canvas>
+              </div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div>
+                  <div class="chart-title" data-i18n="waterSavingsChart">Cumulative Water Savings Trend (Litres)</div>
+                  <div class="chart-subtitle">Empirical water conservation calculated against FAO-56 baseline</div>
+                </div>
+              </div>
+              <div class="chart-canvas-wrapper">
+                <canvas id="chartWaterSavings"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Irrigation Alerts List -->
+          <div class="data-table-card">
+            <div class="table-header-bar">
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--primary-dark);" data-i18n="alerts">Active Anomalies & Potential Failures</h3>
+              <button class="btn btn-secondary btn-sm" onclick="switchView('alerts')">View All Alerts →</button>
+            </div>
+            <div style="padding: 18px;" id="dashboardAlertsList"></div>
+          </div>
+        </section>
+
+        <!-- ==================== 2. RECOMMENDATIONS VIEW ==================== -->
+        <section class="view-container" id="view-recommendations">
+          <div class="decision-card">
+            <h2 style="font-size: 20px; color: var(--primary-dark); margin-bottom: 6px;">Smart Irrigation Recommendation Engine</h2>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+              FAO-56 Penman-Monteith crop coefficients (Kc), soil depletion fractions (p), root depth (Zr), and forecast rainfall accounting.
+            </p>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Crop Type</label>
+                <select id="simCropType" class="form-control" onchange="renderRecommendationsView()">
+                  <option value="Cotton" selected>Cotton (Bt Cotton)</option>
+                  <option value="Paddy">Paddy / Rice (Telangana Sona)</option>
+                  <option value="Tomato">Tomato (Arka Rakshak)</option>
+                  <option value="Groundnut">Groundnut (Kadiri-6)</option>
+                  <option value="Maize">Maize (Corn)</option>
+                  <option value="Chilli">Chilli / Pepper</option>
+                  <option value="Wheat">Wheat</option>
+                  <option value="Sugarcane">Sugarcane</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Growth Stage</label>
+                <select id="simGrowthStage" class="form-control" onchange="renderRecommendationsView()">
+                  <option value="Initial">Initial (Germination)</option>
+                  <option value="Crop Development">Crop Development</option>
+                  <option value="Mid-Season" selected>Mid-Season (Flowering / Fruiting)</option>
+                  <option value="Late Season">Late Season (Ripening)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Soil Type</label>
+                <select id="simSoilType" class="form-control" onchange="renderRecommendationsView()">
+                  <option value="Black Cotton Soil" selected>Black Cotton Soil (Deep Vertisol)</option>
+                  <option value="Red Loamy Soil">Red Loamy Soil</option>
+                  <option value="Clay Loam">Clay Loam</option>
+                  <option value="Sandy Loam Soil">Sandy Loam Soil</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Current Soil Moisture (%)</label>
+                <input type="number" id="simMoisture" class="form-control" value="34.5" min="5" max="95" step="0.5" onchange="renderRecommendationsView()">
+              </div>
+            </div>
+
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Forecast Rainfall (mm)</label>
+                <input type="number" id="simForecastRain" class="form-control" value="0.0" min="0" max="150" step="1" onchange="renderRecommendationsView()">
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Rainfall Probability (%)</label>
+                <input type="number" id="simRainProb" class="form-control" value="20" min="0" max="100" step="5" onchange="renderRecommendationsView()">
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="renderRecommendationsView()">Recalculate Advisory</button>
+          </div>
+
+          <div id="recommendationSimulatorResults"></div>
+        </section>
+
+        <!-- ==================== 3. SOIL MONITORING VIEW ==================== -->
+        <section class="view-container" id="view-soil">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 style="font-size:18px; color:var(--primary-dark);">Soil Moisture Sensors & Field Plots</h3>
+            <button class="btn btn-primary btn-sm" onclick="openSoilModal(selectedPlotId)">+ Record Soil Reading</button>
+          </div>
+
+          <div class="grid-cards" id="soilPlotGrid"></div>
+
+          <div class="data-table-card">
+            <div class="table-header-bar">
+              <h4 style="font-size:16px;">Telemetry Log History</h4>
+              <span style="font-size:12px; color:var(--text-muted);">Last 15 Ingested Data Packets</span>
+            </div>
+            <div class="table-responsive">
+              <table class="app-table">
+                <thead>
+                  <tr>
+                    <th>Timestamp</th>
+                    <th>Moisture (%)</th>
+                    <th>Temperature</th>
+                    <th>EC (dS/m)</th>
+                    <th>Source Type</th>
+                    <th>Sensor Battery</th>
+                  </tr>
+                </thead>
+                <tbody id="soilReadingsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 4. WEATHER FORECAST VIEW ==================== -->
+        <section class="view-container" id="view-weather">
+          <div class="decision-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <h3 style="font-size:18px;">Live Agro-Meteorological Weather Station</h3>
+                <p style="font-size:13px; color:var(--text-muted);">Source: Open-Meteo High-Resolution Global Atmospheric Model</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="renderWeatherView()">↻ Refresh Weather</button>
+            </div>
+          </div>
+
+          <div class="grid-cards" id="weatherForecastCards"></div>
+        </section>
+
+        <!-- ==================== 5. SCHEDULER VIEW ==================== -->
+        <section class="view-container" id="view-scheduler">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 style="font-size:18px; color:var(--primary-dark);">Irrigation Execution Scheduler</h3>
+            <button class="btn btn-primary btn-sm" onclick="openScheduleModalForPlot(selectedPlotId)">+ Add New Schedule</button>
+          </div>
+
+          <div class="data-table-card">
+            <div class="table-responsive">
+              <table class="app-table">
+                <thead>
+                  <tr>
+                    <th>Plot & Crop</th>
+                    <th>Date & Time</th>
+                    <th>Duration</th>
+                    <th>Water Quantity</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="schedulerTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 6. WATER USAGE ANALYTICS VIEW ==================== -->
+        <section class="view-container" id="view-analytics">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+            <h3 style="font-size:18px; color:var(--primary-dark);">Water Conservation & Efficiency Audit</h3>
+            <button class="btn btn-primary btn-sm" onclick="exportCsvReport()">📥 Download CSV Audit Report</button>
+          </div>
+
+          <div class="grid-cards">
+            <div class="stat-card card-blue">
+              <div class="stat-label">Total Measured Water (14 Days)</div>
+              <div class="stat-value">138,600 L</div>
+              <div class="stat-footer">High Efficiency Drip Systems</div>
+            </div>
+            <div class="stat-card card-amber">
+              <div class="stat-label">Conventional Flood Baseline</div>
+              <div class="stat-value">225,400 L</div>
+              <div class="stat-footer">Standard 50% Application Efficiency</div>
+            </div>
+            <div class="stat-card card-green">
+              <div class="stat-label">Total Water Conserved</div>
+              <div class="stat-value">86,800 L</div>
+              <div class="stat-footer"><span class="stat-trend trend-up">38.5% Net Savings</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 7. FAILURE & WASTE ALERTS VIEW ==================== -->
+        <section class="view-container" id="view-alerts">
+          <div style="margin-bottom:18px;">
+            <h3 style="font-size:18px; color:var(--primary-dark);">Irrigation Anomaly & Waste Detection</h3>
+            <p style="font-size:13px; color:var(--text-muted);">Rule-based continuous telemetry monitoring for pipe leakages, motor trips, and weather schedule conflicts.</p>
+          </div>
+          <div id="fullAlertsList"></div>
+        </section>
+
+        <!-- ==================== 8. TELUGU VOICE ASSISTANT VIEW ==================== -->
+        <section class="view-container" id="view-voiceAssistant">
+          <div class="voice-assistant-card">
+            <h2 style="font-size: 24px; font-weight: 700;">రైతు వాయిస్ అసిస్టెంట్ / Farmer Voice AI</h2>
+            <p style="font-size: 14px; opacity: 0.9; margin-top: 6px;" id="voicePromptText">
+              Press microphone and ask in Telugu or English
+            </p>
+
+            <button class="mic-button" id="micButton" onclick="toggleVoiceListen()">
+              🎤
+            </button>
+
+            <!-- Pre-configured Farmer Query Pills -->
+            <div class="voice-sample-pills">
+              <button class="sample-pill" onclick="sendSampleVoiceQuery('Naa polaniki eeroju neeru pettala?')">"Naa polaniki eeroju neeru pettala?"</button>
+              <button class="sample-pill" onclick="sendSampleVoiceQuery('Varsham pade avakasam unda?')">"Varsham pade avakasam unda?"</button>
+              <button class="sample-pill" onclick="sendSampleVoiceQuery('Entha neeru avasaram?')">"Entha neeru avasaram?"</button>
+              <button class="sample-pill" onclick="sendSampleVoiceQuery('Naa soil moisture entha undi?')">"Naa soil moisture entha undi?"</button>
+            </div>
+
+            <!-- Typed Query Fallback -->
+            <div style="display: flex; gap: 8px; max-width: 540px; margin: 16px auto 0;">
+              <input type="text" id="typedVoiceInput" class="form-control" placeholder="మీ ప్రశ్న ఇక్కడ టైప్ చేయండి / Type your question..." onkeydown="if(event.key==='Enter') submitTypedVoice();">
+              <button class="btn btn-primary" onclick="submitTypedVoice()">Send</button>
+            </div>
+
+            <!-- Transcript Chat Log -->
+            <div class="chat-transcript-history" id="chatTranscriptHistory">
+              <div class="chat-bubble bubble-assistant">
+                నమస్కారం! నేను ఆక్వాసెన్స్ వాయిస్ అసిస్టెంట్. మీ పొలానికి నీరు పెట్టడం, వర్షపాతం లేదా నేల తేమ గురించి ఏదైనా అడగవచ్చు. (Ask in Telugu or English)
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 9. IOT & PUMP HUB VIEW ==================== -->
+        <section class="view-container" id="view-iotSimulator">
+          <div class="decision-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <h3 style="font-size:18px;">Virtual IoT Sensor Simulator & Pump Actuator</h3>
+                <p style="font-size:13px; color:var(--text-muted);">Simulate live sensor telemetry packets and test automated control loops.</p>
+              </div>
+              <button class="btn btn-danger" onclick="triggerEmergencyStop()">🚨 Emergency Stop</button>
+            </div>
+
+            <div class="form-row-2" style="margin-top:18px;">
+              <div class="form-group">
+                <label class="form-label">Simulate Soil Moisture (%)</label>
+                <input type="number" id="simMoistureInput" class="form-control" value="26.0">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Simulate Temperature (°C)</label>
+                <input type="number" id="simTempInput" class="form-control" value="33.0">
+              </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="sendSimulatedPacket()">Transmit IoT Packet</button>
+
+            <div style="margin-top:20px;">
+              <label class="form-label">Gateway Telemetry Terminal Stream</label>
+              <div id="iotConsoleLog" style="background:#0f172a; color:#38bdf8; font-family:monospace; font-size:12px; padding:16px; border-radius:8px; height:180px; overflow-y:auto; white-space:pre-wrap;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 10. FARM MANAGEMENT VIEW ==================== -->
+        <section class="view-container" id="view-farms">
+          <div class="decision-card">
+            <h3 style="font-size:18px; margin-bottom:12px;">Registered Agricultural Landholdings</h3>
+            <div class="grid-cards">
+              <div class="stat-card">
+                <h4 style="font-size:16px; font-weight:700;">Sri Lakshmi Agro-Tech Farm</h4>
+                <p style="font-size:13px; color:var(--text-muted); margin:4px 0 10px;">Warangal, Telangana (17.96° N, 79.59° E)</p>
+                <p style="font-size:13px;"><strong>Total Area:</strong> 8.0 Acres</p>
+                <p style="font-size:13px;"><strong>Water Source:</strong> Borewell + 5 HP Solar Pump</p>
+                <p style="font-size:13px;"><strong>Discharge:</strong> 140 LPM (Litres Per Minute)</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 11. PLOTS VIEW ==================== -->
+        <section class="view-container" id="view-plots">
+          <div class="decision-card">
+            <h3 style="font-size:18px; margin-bottom:12px;">Active Crop Plots</h3>
+            <div class="grid-cards">
+              <div class="stat-card">
+                <h4>Plot 1 - North Cotton Block</h4>
+                <p style="color:var(--text-muted); font-size:12px;">Bt Cotton • Black Cotton Soil</p>
+                <p>2.5 Acres • Drip Irrigation (90%)</p>
+                <div style="font-size:20px; font-weight:700; color:#dc2626; margin-top:8px;">Moisture: 34.5%</div>
+              </div>
+              <div class="stat-card">
+                <h4>Plot 2 - South Tomato Nursery</h4>
+                <p style="color:var(--text-muted); font-size:12px;">Arka Rakshak • Red Loamy Soil</p>
+                <p>1.5 Acres • Drip Irrigation (90%)</p>
+                <div style="font-size:20px; font-weight:700; color:#10b981; margin-top:8px;">Moisture: 58.0%</div>
+              </div>
+              <div class="stat-card">
+                <h4>Plot 3 - Lowland Paddy Basin</h4>
+                <p style="color:var(--text-muted); font-size:12px;">Telangana Sona • Clay Loam</p>
+                <p>2.5 Acres • Flood Irrigation (50%)</p>
+                <div style="font-size:20px; font-weight:700; color:#10b981; margin-top:8px;">Moisture: 72.0%</div>
+              </div>
+              <div class="stat-card">
+                <h4>Plot 4 - East Groundnut Field</h4>
+                <p style="color:var(--text-muted); font-size:12px;">Kadiri-6 • Sandy Loam Soil</p>
+                <p>1.5 Acres • Sprinkler Irrigation (75%)</p>
+                <div style="font-size:20px; font-weight:700; color:#b45309; margin-top:8px;">Moisture: 36.2%</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== 12. SETTINGS VIEW ==================== -->
+        <section class="view-container" id="view-settings">
+          <div class="decision-card">
+            <h3 style="font-size:18px; margin-bottom:14px;">Farmer Profile & Agronomic Reference</h3>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Farmer Full Name</label>
+                <input type="text" class="form-control" value="Ganesh Rao">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" class="form-control" value="+91 98765 43210">
+              </div>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label class="form-label">Measurement Unit</label>
+                <select class="form-control">
+                  <option selected>Acres</option>
+                  <option>Hectares</option>
+                  <option>Gunthas</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Preferred Language</label>
+                <select class="form-control" onchange="setLanguage(this.value)">
+                  <option value="en">English</option>
+                  <option value="te">తెలుగు (Telugu)</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="showToast('Profile settings saved successfully', 'success')">Save Settings</button>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+  <!-- Soil Reading Modal -->
+  <div class="modal-overlay" id="soilReadingModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Record Manual Soil Probe Reading</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Soil Moisture Percentage (%)</label>
+          <input type="number" id="modalMoistureInput" class="form-control" placeholder="e.g. 42.5" min="5" max="95" step="0.5">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Measurement Depth</label>
+          <select class="form-control">
+            <option>15 cm (Topsoil)</option>
+            <option selected>30 cm (Active Root Zone)</option>
+            <option>60 cm (Sub-surface)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitSoilReadingModal()">Save Reading</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schedule Modal -->
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Schedule New Irrigation Session</h3>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Scheduled Date</label>
+          <input type="date" id="modalSchedDate" class="form-control" value="2026-10-16">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Start Time</label>
+          <input type="time" id="modalSchedTime" class="form-control" value="06:30">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Planned Duration (Minutes)</label>
+          <input type="number" id="modalSchedDuration" class="form-control" value="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Planned Water Volume (Litres)</label>
+          <input type="number" id="modalSchedLitres" class="form-control" value="8400">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Field Notes</label>
+          <textarea id="modalSchedNotes" class="form-control" rows="2" placeholder="e.g. Morning cycle with bio-fertilizer pulse"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeAllModals()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitScheduleModal()">Confirm Schedule</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/translations.js"></script>
+  <script src="js/recommendation_engine.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
